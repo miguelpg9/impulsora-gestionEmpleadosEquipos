@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
   <head>
+    <title>Sistema de Gestión</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Sistema de Gestión</title>
     <link rel="stylesheet" href="assets/libs/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
   </head>
   <body>
     <header class="bg-light py-3 px-4 shadow-sm fixed-top">
       <div class="container-fluid">
-        <span class="header-title">
+        <div class="header-title">
           <span class="grupo">Grupo</span> <span class="impulsora">Impulsora</span>
-        </span>
+        </div>
       </div>
     </header>
     <main  class="d-flex justify-content-center align-items-center vh-100">
