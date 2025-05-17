@@ -67,13 +67,14 @@
             <button class="btn btn-warning" id="botonAlta" ></button>
             <button class="btn btn-success" onclick="inicio()">Volver</button>
           </div>
-          
         </div>
-        <table class="table table-bordered table-hover">
-          <thead id="tablaHead" class="table-success"></thead>
-          <tbody id="tablaBody"></tbody>
-        </table>
-        <div id="paginacion" class="d-flex justify-content-center mt-3"></div>
+        <div class="table-responsive">
+          <table class=" table table-bordered table-hover">
+            <thead id="tablaHead" class="table-success"></thead>
+            <tbody id="tablaBody"></tbody>
+          </table>
+          <div id="paginacion" class="d-flex justify-content-center mt-3"></div>
+        </div>
       </div>
 
     </div>
@@ -195,7 +196,6 @@
           .then(response => response.json())
           .then(data => {
             const empleados = document.getElementById('tablaBody');
-            console.log(data)
             empleados.innerHTML = '';
 
             data.forEach(e => {
@@ -203,8 +203,8 @@
                 <tr>
                   <td>${e.idEquipo}</td>
                   <td class="td-nombre">${e.nombreEquipo}</td>
-                  <td class="td-serie">${e.nombreTipo}</td>
-                  <td class="td-tipo">${e.serie}</td>
+                  <td class="td-tipo">${e.nombreTipo}</td>
+                  <td class="td-serie">${e.serie}</td>
                   <td class="td-responsable">${e.responsable}</td>
                   <td>
                     <button class="btn btn-sm btn-warning editar-equipo" data-id="${e.idEquipo}">Editar</button>
@@ -351,13 +351,18 @@
         })
           .then(res => res.json())
           .then(data => {
-            Swal.fire("Éxito", data.message, "success");
-            this.reset();
-            document.getElementById("formEmpleado").classList.add("d-none");
-            modoEdicionEmpleado = false;
-            idEmpleadoActual = null;
-            document.querySelector("#formEmpleado .btn").textContent = "Guardar";
-            cargarEmpleados();
+            if(!data.success){
+              Swal.fire("Advertencia", data.mensaje, "warning");
+            } else {
+              Swal.fire("Éxito", data.mensaje, "success");
+              this.reset();
+              document.getElementById("formEmpleado").classList.add("d-none");
+              modoEdicionEmpleado = false;
+              idEmpleadoActual = null;
+              document.querySelector("#formEmpleado .btn").textContent = "Guardar";
+              cargarEmpleados();
+            }
+            
           })
           .catch(error => {
             console.error("Error:", error);
@@ -396,9 +401,9 @@
         e.preventDefault();
 
         const formData = new FormData(this);
-        let url = "equipo/crear.php";
+        let url = "equipos/crear.php";
         if (modoEdicionEquipo && idEquipoActual) {
-          url = "equipo/editar.php";
+          url = "equipos/editar.php";
           formData.append("idEquipo", idEquipoActual);
         }
 
@@ -408,17 +413,15 @@
         })
           .then(res => res.json())
           .then(data => {
-            Swal.fire("Éxito", data.message, "success");
+            Swal.fire("Éxito", data.mensaje, "success");
             this.reset();
             document.getElementById("formEquipo").classList.add("d-none");
 
-            // Reiniciar estado
             modoEdicionEquipo = false;
             idEquipoActual = null;
             document.querySelector("#formEquipo .btn").textContent = "Guardar";
 
-            // Recargar tabla
-            obtenerEquipos();
+            cargarEquipos();
           })
           .catch(error => {
             console.error("Error:", error);
@@ -437,10 +440,8 @@
           const responsableNombre = fila.querySelector(".td-responsable").textContent;
           const id = btn.getAttribute("data-id");
 
-          // Mostrar formulario
           mostrarFormulario('equipos');
 
-          // Esperar a que se carguen los selects y luego rellenar
           setTimeout(() => {
             document.getElementById("formAltaEquipo").nombreEquipo.value = nombreEquipo;
             document.getElementById("formAltaEquipo").serie.value = serie;
@@ -473,6 +474,11 @@
           document.querySelector("#formEmpleado .btn").textContent = "Guardar";
         } else if (tipoActual === 'equipos') {
           mostrarFormulario('equipos');
+          document.getElementById("formAltaEquipo").nombreEquipo.value = "";
+          document.getElementById("formAltaEquipo").serie.value = "";
+          document.querySelector('[name="idTipo"]').value = 0;
+          document.querySelector('[name="responsableId"]').value = 0;
+          document.querySelector("#formEquipo .btn").textContent = "Guardar";
         }
       });
 
