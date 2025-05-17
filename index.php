@@ -39,7 +39,7 @@
         <h5>Nuevo Empleado</h5>
         <form id="formAltaEmpleado">
           <input name="nombreEmpleado" class="form-control mb-2" placeholder="Nombre" required>
-          <input name="apellidoPaterno" class="form-control mb-2" placeholder="Apellido Paterno" required>
+          <input name="apellidoPaterno" class="form-control mb-2" placeholder="Apellido Paterno">
           <input name="apellidoMaterno" class="form-control mb-2" placeholder="Apellido Materno">
           <input name="correo" class="form-control mb-2" type="email" placeholder="Correo" required>
           <select name="idDepartamento" class="form-control mb-2" required></select>
@@ -82,6 +82,10 @@
       let tipoActual = null;
       let filasPorPagina = 5
       let paginaActual = 1;
+      let modoEdicionEmpleado = false;
+      let modoEdicionEquipo = false;
+      let idEquipoActual = null;
+      let idEmpleadoActual = null;
 
       function inicio() {
         document.getElementById('tablaContenido').classList.add('d-none');
@@ -154,6 +158,8 @@
           `;
           cargarEquipos();
         }
+        document.getElementById('formEmpleado').classList.add('d-none');
+        document.getElementById('formEquipo').classList.add('d-none');
       }
 
       function cargarEmpleados() {
@@ -167,11 +173,11 @@
               const fila = `
                 <tr>
                   <td>${e.idEmpleado}</td>
-                  <td>${e.nombreEmpleado}</td>
-                  <td>${e.correo}</td>
-                  <td>${e.nombreDepartamento}</td>
+                  <td class="td-nombreEmpleado">${e.nombreEmpleado}</td>
+                  <td class="td-correo">${e.correo}</td>
+                  <td class="td-departamento">${e.nombreDepartamento}</td>
                   <td>
-                    <a href="editar.php?id=2" class="btn btn-sm btn-warning">Editar</a>
+                    <button class="btn btn-sm btn-warning editar-empleado" data-id="${e.idEmpleado}">Editar</button>
                     <button class="btn btn-sm btn-danger" onclick="confirmarEliminacion('empleado', ${e.idEmpleado})">Eliminar</button>
                   </td>
                 </tr>`;
@@ -196,12 +202,12 @@
               const fila = `
                 <tr>
                   <td>${e.idEquipo}</td>
-                  <td>${e.nombreEquipo}</td>
-                  <td>${e.nombreTipo}</td>
-                  <td>${e.serie}</td>
-                  <td>${e.responsable}</td>
+                  <td class="td-nombre">${e.nombreEquipo}</td>
+                  <td class="td-serie">${e.nombreTipo}</td>
+                  <td class="td-tipo">${e.serie}</td>
+                  <td class="td-responsable">${e.responsable}</td>
                   <td>
-                    <a href="editar.php?id=2" class="btn btn-sm btn-warning">Editar</a>
+                    <button class="btn btn-sm btn-warning editar-equipo" data-id="${e.idEquipo}">Editar</button>
                     <button class="btn btn-sm btn-danger" onclick="confirmarEliminacion('equipo', ${e.idEquipo})">Eliminar</button>
                   </td>
                 </tr>`;
@@ -333,32 +339,138 @@
       document.getElementById('formAltaEmpleado').addEventListener('submit', function(e) {
         e.preventDefault();
         const formData = new FormData(this);
-        fetch('empleados/crear.php', { method: 'POST', body: formData })
+        let url = "empleados/crear.php";
+        if (modoEdicionEmpleado && idEmpleadoActual) {
+          url = "empleados/editar.php";
+          formData.append("idEmpleado", idEmpleadoActual);
+        }
+
+        fetch(url, {
+          method: "POST",
+          body: formData
+        })
           .then(res => res.json())
-          .then(r => {
-            Swal.fire('Confirmación', r.mensaje, 'success')
-            cargarEmpleados();
+          .then(data => {
+            Swal.fire("Éxito", data.message, "success");
             this.reset();
-            document.getElementById('formEmpleado').classList.add('d-none');
+            document.getElementById("formEmpleado").classList.add("d-none");
+            modoEdicionEmpleado = false;
+            idEmpleadoActual = null;
+            document.querySelector("#formEmpleado .btn").textContent = "Guardar";
+            cargarEmpleados();
+          })
+          .catch(error => {
+            console.error("Error:", error);
+            Swal.fire("Error", "No se pudo procesar", "error");
           });
       });
 
-      document.getElementById('formAltaEquipo').addEventListener('submit', function(e) {
+      document.addEventListener("click", function (e) {
+        if (e.target.classList.contains("editar-empleado")) {
+          const btn = e.target;
+          const fila = btn.closest("tr");
+
+          const nombreEmpleado = fila.querySelector(".td-nombreEmpleado").textContent;
+          const correo = fila.querySelector(".td-correo").textContent;
+          const departamento = fila.querySelector(".td-departamento").textContent;
+          const id = btn.getAttribute("data-id");
+
+          mostrarFormulario('empleados');
+
+          setTimeout(() => {
+            document.getElementById("formAltaEmpleado").nombreEmpleado.value = nombreEmpleado;
+            document.getElementById("formAltaEmpleado").nombreEmpleado.disabled = true;
+            document.getElementById("formAltaEmpleado").apellidoPaterno.hidden = true;
+            document.getElementById("formAltaEmpleado").apellidoMaterno.hidden = true;
+            document.getElementById("formAltaEmpleado").correo.value = correo;
+            document.querySelector('[name="idDepartamento"]').value = obtenerIdPorTexto('[name="idDepartamento"]', departamento);
+
+            modoEdicionEmpleado = true;
+            idEmpleadoActual = id;
+            document.querySelector("#formEmpleado .btn").textContent = "Actualizar";
+          }, 100);
+        }
+      });
+
+      document.getElementById("formAltaEquipo").addEventListener("submit", function (e) {
         e.preventDefault();
+
         const formData = new FormData(this);
-        fetch('equipos/crear.php', { method: 'POST', body: formData })
+        let url = "equipo/crear.php";
+        if (modoEdicionEquipo && idEquipoActual) {
+          url = "equipo/editar.php";
+          formData.append("idEquipo", idEquipoActual);
+        }
+
+        fetch(url, {
+          method: "POST",
+          body: formData
+        })
           .then(res => res.json())
-          .then(r => {
-            Swal.fire('Confirmación', r.mensaje, 'success')
-            cargarEquipos();
+          .then(data => {
+            Swal.fire("Éxito", data.message, "success");
             this.reset();
-            document.getElementById('formEquipo').classList.add('d-none');
+            document.getElementById("formEquipo").classList.add("d-none");
+
+            // Reiniciar estado
+            modoEdicionEquipo = false;
+            idEquipoActual = null;
+            document.querySelector("#formEquipo .btn").textContent = "Guardar";
+
+            // Recargar tabla
+            obtenerEquipos();
+          })
+          .catch(error => {
+            console.error("Error:", error);
+            Swal.fire("Error", "No se pudo procesar", "error");
           });
       });
+
+      document.addEventListener("click", function (e) {
+        if (e.target.classList.contains("editar-equipo")) {
+          const btn = e.target;
+          const fila = btn.closest("tr");
+
+          const nombreEquipo = fila.querySelector(".td-nombre").textContent;
+          const serie = fila.querySelector(".td-serie").textContent;
+          const tipoNombre = fila.querySelector(".td-tipo").textContent;
+          const responsableNombre = fila.querySelector(".td-responsable").textContent;
+          const id = btn.getAttribute("data-id");
+
+          // Mostrar formulario
+          mostrarFormulario('equipos');
+
+          // Esperar a que se carguen los selects y luego rellenar
+          setTimeout(() => {
+            document.getElementById("formAltaEquipo").nombreEquipo.value = nombreEquipo;
+            document.getElementById("formAltaEquipo").serie.value = serie;
+            document.querySelector('[name="idTipo"]').value = obtenerIdPorTexto('[name="idTipo"]', tipoNombre);
+            document.querySelector('[name="responsableId"]').value = obtenerIdPorTexto('[name="responsableId"]', responsableNombre);
+
+            modoEdicionEquipo = true;
+            idEquipoActual = id;
+            document.querySelector("#formEquipo .btn").textContent = "Actualizar";
+          }, 300);
+        }
+      });
+
+      function obtenerIdPorTexto(selector, texto) {
+        const opciones = document.querySelectorAll(selector + " option");
+        for (let opt of opciones) {
+          if (opt.textContent === texto) return opt.value;
+        }
+        return "";
+      }
 
       document.getElementById('botonAlta').addEventListener('click', () => {
         if (tipoActual === 'empleados') {
           mostrarFormulario('empleados');
+          document.getElementById("formAltaEmpleado").nombreEmpleado.value = "";
+          document.getElementById("formAltaEmpleado").nombreEmpleado.disabled = false;
+          document.getElementById("formAltaEmpleado").apellidoPaterno.hidden = false;
+          document.getElementById("formAltaEmpleado").apellidoMaterno.hidden = false;
+          document.getElementById("formAltaEmpleado").correo.value = "";
+          document.querySelector("#formEmpleado .btn").textContent = "Guardar";
         } else if (tipoActual === 'equipos') {
           mostrarFormulario('equipos');
         }
