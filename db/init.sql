@@ -34,7 +34,7 @@ CREATE TABLE equipos (
     nombreEquipo NVARCHAR(100) NOT NULL,
     idTipo INT NOT NULL,
     serie NVARCHAR(30) NOT NULL,
-    responsableId INT NOT NULL,
+    responsableId INT,
     CONSTRAINT fkEquipoResponsable FOREIGN KEY (responsableId) REFERENCES empleados(idEmpleado),
     CONSTRAINT fkEquipoTipo FOREIGN KEY (idTipo) REFERENCES tipoEquipo(idTipo),
     CONSTRAINT UC_Serie_Equipo UNIQUE(serie)
@@ -73,7 +73,8 @@ INSERT INTO empleados (nombreEmpleado, apellidoPaterno, apellidoMaterno, correo,
 ('Iván', 'Flores', 'Carrillo', 'ivan.flores@mail.com', 7),
 ('Adriana', 'Navarro', 'Castro', 'adriana.navarro@mail.com', 7),
 ('Raúl', 'Silva', 'Escobar', 'raul.silva@mail.com', 7),
-('Camila', 'Medina', 'Salas', 'camila.medina@mail.com', 7);
+('Camila', 'Medina', 'Salas', 'camila.medina@mail.com', 7),
+('Cristina', 'Parra', 'Parra', 'cristina.Parra@mail.com', 7);
 
 --Insertar tipos de equipo
 INSERT INTO tipoEquipo (nombreTipo) VALUES 
@@ -114,3 +115,4 @@ INSERT INTO equipos (nombreEquipo, idTipo, serie, responsableId) VALUES
 ('Teléfono Oppo Reno6', 2, 'TELX009', 9),
 ('Teléfono Realme 8 Pro', 2, 'TELX010', 10);
 GO
+
