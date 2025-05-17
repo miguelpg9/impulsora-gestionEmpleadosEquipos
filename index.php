@@ -129,13 +129,15 @@
                   <td>${e.nombreDepartamento}</td>
                   <td>
                     <a href="editar.php?id=2" class="btn btn-sm btn-warning">Editar</a>
-                    <button class="btn btn-sm btn-danger" onclick="confirmarEliminacion(2)">Eliminar</button>
+                    <button class="btn btn-sm btn-danger" onclick="confirmarEliminacion('empleado', ${e.idEmpleado})">Eliminar</button>
                   </td>
                 </tr>`;
               empleados.innerHTML += fila;
             });
           })
-        .catch(error => console.error('Error al cargar empleados:', error));
+        .catch(err => {
+          Swal.fire('Error', 'Error al consultar el listado de empleados', 'error');
+        });
       }
 
       function cargarEquipos() {
@@ -156,13 +158,15 @@
                   <td>${e.responsable}</td>
                   <td>
                     <a href="editar.php?id=2" class="btn btn-sm btn-warning">Editar</a>
-                    <button class="btn btn-sm btn-danger" onclick="confirmarEliminacion(2)">Eliminar</button>
+                    <button class="btn btn-sm btn-danger" onclick="confirmarEliminacion('equipo', ${e.idEquipo})">Eliminar</button>
                   </td>
                 </tr>`;
               empleados.innerHTML += fila;
             });
           })
-        .catch(error => console.error('Error al cargar equipos:', error));
+        .catch(err => {
+          Swal.fire('Error', 'Error al consultar el listado de equipos', 'error');
+        });
       }
 
       function filtrarTabla(columna, cadena) {
@@ -175,7 +179,64 @@
             fila.style.display = texto.includes(cadena) ? "" : "none";
         });
       }
+
+      function confirmarEliminacion(tipo,id) {
+        Swal.fire({
+          title: `¿Desea eliminar el ${tipo} con id ${id}?`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, eliminar',
+          confirmButtonColor: "#00A44D",
+          cancelButtonColor: "#d33",
+          cancelButtonText: 'Cancelar'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            if(tipo == 'empleado'){
+              eliminarEmpleado(id);
+            }else{
+              eliminarEquipo(id);
+            }
+          }
+        });
+      }
+
+      function eliminarEmpleado(id){
+        fetch('empleados/eliminar.php?id=' + id, {
+          method: 'DELETE'
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire('Confirmación', data.mensaje, 'success');
+            cargarEmpleados();
+          } else {
+            Swal.fire('Error', data.mensaje, 'error');
+          }
+        })
+        .catch(err => {
+          Swal.fire('Error', 'No se pudo procesar la operación', 'error');
+        });
+      } 
+
+      function eliminarEquipo(id){
+        fetch('equipos/eliminar.php?id=' + id, {
+          method: 'DELETE'
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire('Confirmación', data.mensaje, 'success');
+            cargarEmpleados();
+          } else {
+            Swal.fire('Error', data.mensaje, 'error');
+          }
+        })
+        .catch(err => {
+          Swal.fire('Error', 'No se pudo procesar la operación', 'error');
+        });
+      } 
     </script>
     <script src="assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/libs/sweetalert2/sweetalert2.all.min.js"></script>
   </body>
 </html>
